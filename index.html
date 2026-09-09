@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Gift Box 🎁</title>
+  
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg: #fff7fb;
+      --card: rgba(255, 255, 255, 0.85);
+      --text: #27212a;
+      --muted: #8b7d88;
+      --primary: #ff4f91;
+      --primary-dark: #e63c7d;
+      --shadow: 0 12px 35px rgba(150, 60, 100, 0.12);
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffe4f0, transparent 40%),
+        radial-gradient(circle at bottom right, #e9e1ff, transparent 40%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    textarea {
+      font-family: inherit;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 27px;
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .header p {
+      margin: 3px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* SCREEN */
+    .screen {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* HERO */
+    .hero {
+      padding: 28px 20px;
+      text-align: center;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(15px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-gift {
+      font-size: 70px;
+      animation: floating 2.5s ease-in-out infinite;
+    }
+
+    @keyframes floating {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    .hero h2 {
+      margin: 10px 0 8px;
+      font-size: 23px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* SECTION */
+    .section-title {
+      margin: 25px 5px 12px;
+      font-size: 17px;
+    }
+
+    /* GIFT GRID */
+    .gift-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .gift-type {
+      text-align: left;
+      padding: 18px;
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .gift-type:active {
+      transform: scale(0.96);
+    }
+
+    .gift-type span {
+      display: block;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .gift-type b {
+      display: block;
+      font-size: 15px;
+    }
+
+    .gift-type small {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .gift-type.special {
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    /* CREATE */
+    .back-btn {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 10px 14px;
+      border-radius: 12px;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .create-header {
+      text-align: center;
+    }
+
+    .create-header div {
+      font-size: 55px;
+    }
+
+    .create-header h2 {
+      margin: 5px 0;
+    }
+
+    .create-header p {
+      margin: 0 0 25px;
+      color: var(--muted);
+    }
+
+    /* FORM */
+    .form {
+      background: rgba(255, 255, 255, 0.78);
+      padding: 20px;
+      border-radius: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .form label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 14px 0 7px;
+    }
+
+    .form input,
+    .form textarea {
+      width: 100%;
+      border: 1px solid #eee;
+      outline: none;
+      background: #fff;
+      border-radius: 15px;
+      padding: 14px;
+      font-size: 14px;
+      resize: none;
+    }
+
+    .form textarea {
+      min-height: 120px;
+    }
+
+    .form input:focus,
+    .form textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .counter {
+      text-align: right;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    /* THEMES */
+    .themes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .theme {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: white;
+      font-size: 22px;
+      border: 2px solid transparent;
+    }
+
+    .theme.active {
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    /* BUTTONS */
+    .primary-btn {
+      width: 100%;
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, #ff4f91, #ff7eb3);
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(255, 79, 145, 0.25);
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    .secondary-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 16px;
+      background: white;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* GIFT PAGE */
+    .gift-page {
+      text-align: center;
+      padding-top: 15px;
+    }
+
+    .gift-top p {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .gift-top span {
+      font-size: 25px;
+    }
+
+    /* GIFT BOX */
+    .gift-box {
+      position: relative;
+      width: 210px;
+      height: 190px;
+      margin: 55px auto 20px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .gift-box:active {
+      transform: scale(0.95);
+    }
+
+    .box-body {
+      position: absolute;
+      width: 180px;
+      height: 125px;
+      bottom: 0;
+      left: 15px;
+      background: linear-gradient(135deg, #ff4f91, #ff8db8);
+      border-radius: 8px 8px 15px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 18px 35px rgba(220, 70, 130, 0.25);
+    }
+
+    .box-body span {
+      font-size: 40px;
+    }
+
+    .box-lid {
+      position: absolute;
+      width: 210px;
+      height: 48px;
+      top: 30px;
+      left: 0;
+      z-index: 2;
+      background: linear-gradient(135deg, #ff3f86, #ff79aa);
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(220, 70, 130, 0.2);
+      transition: transform 0.8s ease;
+    }
+
+    .ribbon {
+      position: absolute;
+      width: 32px;
+      height: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .ribbon.vertical {
+      width: 28px;
+      height: 100%;
+    }
+
+    /* OPEN ANIMATION */
+    .gift-box.open .box-lid {
+      transform: translateY(-80px) rotate(-12deg);
+    }
+
+    .gift-box.open .box-body {
+      animation: boxOpen 0.6s ease;
+    }
+
+    @keyframes boxOpen {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .tap-text {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* MESSAGE */
+    .gift-message {
+      margin-top: 30px;
+      animation: messageIn 0.8s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .final-emoji {
+      font-size: 45px;
+    }
+
+    .to-text {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .message-card {
+      background: white;
+      border-radius: 22px;
+      padding: 22px;
+      margin-top: 15px;
+      font-size: 17px;
+      line-height: 1.6;
+      box-shadow: var(--shadow);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .signature {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 15px;
+    }
+
+    /* CONFETTI */
+    .confetti-piece {
+      position: fixed;
+      top: -20px;
+      font-size: 20px;
+      z-index: 9999;
+      pointer-events: none;
+      animation: fall 2.5s linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 380px) {
+      .app {
+        padding: 13px;
+      }
+      .gift-grid {
+        gap: 8px;
+      }
+      .gift-type {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- CONFETTI CONTAINER -->
+    <div id="confetti"></div>
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="logo">🎁</div>
+      <div>
+        <h1>Digital Gift Box</h1>
+        <p>Send a little happiness 💝</p>
+      </div>
+    </header>
+
+    <!-- HOME -->
+    <section id="homeScreen" class="screen active">
+      <div class="hero">
+        <div class="hero-gift">🎁</div>
+        <h2>Make someone's day special</h2>
+        <p>Create a beautiful digital gift and share it with your friends.</p>
+      </div>
+
+      <h3 class="section-title">Choose a Gift</h3>
+
+      <div class="gift-grid">
+        <button class="gift-type" data-type="Birthday">
+          <span>🎂</span>
+          <b>Birthday</b>
+          <small>Make their day special</small>
+        </button>
+        <button class="gift-type" data-type="Friendship">
+          <span>❤️</span>
+          <b>Friendship</b>
+          <small>For your special friend</small>
+        </button>
+        <button class="gift-type" data-type="Thank You">
+          <span>🌸</span>
+          <b>Thank You</b>
+          <small>Show your gratitude</small>
+        </button>
+        <button class="gift-type" data-type="Congratulations">
+          <span>🎉</span>
+          <b>Congratulations</b>
+          <small>Celebrate together</small>
+        </button>
+        <button class="gift-type special" data-type="Special">
+          <span>💖</span>
+          <b>Special</b>
+          <small>Just because 💫</small>
+        </button>
+      </div>
+    </section>
+
+    <!-- CREATE SCREEN -->
+    <section id="createScreen" class="screen">
+      <button class="back-btn" id="backBtn">← Back</button>
+      <div class="create-header">
+        <div id="selectedEmoji">🎁</div>
+        <h2>Create Your Gift</h2>
+        <p id="selectedType">Special Gift</p>
+      </div>
+
+      <div class="form">
+        <label>Recipient Name</label>
+        <input id="recipient" type="text" maxlength="30" placeholder="Enter name..." />
+
+        <label>Your Message</label>
+        <textarea id="message" maxlength="250" placeholder="Write something beautiful..."></textarea>
+        <div class="counter"><span id="charCount">0</span>/250</div>
+
+        <label>Choose Theme</label>
+        <div class="themes">
+          <button class="theme active" data-theme="pink">🌸</button>
+          <button class="theme" data-theme="gold">✨</button>
+          <button class="theme" data-theme="night">🌙</button>
+          <button class="theme" data-theme="rainbow">🌈</button>
+          <button class="theme" data-theme="rose">🌹</button>
+        </div>
+
+        <button id="createBtn" class="primary-btn">🎁 Create Gift</button>
+      </div>
+    </section>
+
+    <!-- GIFT SCREEN -->
+    <section id="giftScreen" class="screen">
+      <div class="gift-page">
+        <div class="gift-top">
+          <p>YOU RECEIVED A GIFT</p>
+          <span>💝</span>
+        </div>
+
+        <div id="giftBox" class="gift-box">
+          <div class="box-lid">
+            <div class="ribbon"></div>
+          </div>
+          <div class="box-body">
+            <div class="ribbon vertical"></div>
+            <span>🎁</span>
+          </div>
+        </div>
+
+        <p id="tapText" class="tap-text">Tap the gift to open ✨</p>
+
+        <div id="giftMessage" class="gift-message hidden">
+          <div id="finalEmoji" class="final-emoji">🎁</div>
+          <p class="to-text">For <strong id="finalName">You</strong> 💝</p>
+          <div id="finalMessage" class="message-card"></div>
+          <p class="signature">Made with 💖 using Digital Gift Box</p>
+
+          <button id="shareBtn" class="primary-btn">📤 Send to Friend</button>
+          <button id="newGiftBtn" class="secondary-btn">🎁 Create Another Gift</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ======================================
+    // DIGITAL GIFT BOX - JAVASCRIPT
+    // ======================================
+
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor("#fff7fb");
+      if (tg.setBackgroundColor) tg.setBackgroundColor("#fff7fb");
+    }
+
+    // ELEMENTS
+    const homeScreen = document.getElementById("homeScreen");
+    const createScreen = document.getElementById("createScreen");
+    const giftScreen = document.getElementById("giftScreen");
+
+    const giftTypes = document.querySelectorAll(".gift-type");
+    const backBtn = document.getElementById("backBtn");
+
+    const selectedEmoji = document.getElementById("selectedEmoji");
+    const selectedType = document.getElementById("selectedType");
+
+    const recipient = document.getElementById("recipient");
+    const message = document.getElementById("message");
+    const charCount = document.getElementById("charCount");
+
+    const themes = document.querySelectorAll(".theme");
+    const createBtn = document.getElementById("createBtn");
+
+    const giftBox = document.getElementById("giftBox");
+    const giftMessage = document.getElementById("giftMessage");
+
+    const finalName = document.getElementById("finalName");
+    const finalMessage = document.getElementById("finalMessage");
+    const finalEmoji = document.getElementById("finalEmoji");
+
+    const shareBtn = document.getElementById("shareBtn");
+    const newGiftBtn = document.getElementById("newGiftBtn");
+
+    // GIFT TYPES DATA
+    const giftEmojis = {
+      Birthday: "🎂",
+      Friendship: "❤️",
+      "Thank You": "🌸",
+      Congratulations: "🎉",
+      Special: "💖"
+    };
+
+    let selectedGiftType = "Special";
+    let selectedTheme = "pink";
+
+    // SCREEN NAVIGATION
+    function showScreen(screen) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      screen.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // SELECT GIFT TYPE
+    giftTypes.forEach(button => {
+      button.addEventListener("click", () => {
+        selectedGiftType = button.dataset.type;
+        selectedEmoji.textContent = giftEmojis[selectedGiftType];
+        selectedType.textContent = selectedGiftType + " Gift";
+        showScreen(createScreen);
+      });
+    });
+
+    // BACK BUTTON
+    backBtn.addEventListener("click", () => {
+      showScreen(homeScreen);
+    });
+
+    // CHAR COUNTER
+    message.addEventListener("input", () => {
+      charCount.textContent = message.value.length;
+    });
+
+    // THEME SELECTION
+    themes.forEach(button => {
+      button.addEventListener("click", () => {
+        themes.forEach(t => t.classList.remove("active"));
+        button.classList.add("active");
+        selectedTheme = button.dataset.theme;
+      });
+    });
+
+    // ENCODE / DECODE
+    function encodeGift(data) {
+      const json = JSON.stringify(data);
+      const bytes = new TextEncoder().encode(json);
+      let binary = "";
+      bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+
+    function decodeGift(encoded) {
+      try {
+        let base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+        while (base64.length % 4) {
+          base64 += "=";
+        }
+        const binary = atob(base64);
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        const json = new TextDecoder().decode(bytes);
+        return JSON.parse(json);
+      } catch (error) {
+        console.log("Invalid gift data");
+        return null;
+      }
+    }
+
+    // APPLY THEME COLORS
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const themeData = {
+        pink: { primary: "#ff4f91", dark: "#e63c7d" },
+        gold: { primary: "#d89b28", dark: "#b77c12" },
+        night: { primary: "#7567ff", dark: "#5044d9" },
+        rainbow: { primary: "#7b61ff", dark: "#5b42d6" },
+        rose: { primary: "#e94d68", dark: "#c93450" }
+      };
+      const selected = themeData[theme] || themeData.pink;
+      root.style.setProperty("--primary", selected.primary);
+      root.style.setProperty("--primary-dark", selected.dark);
+    }
+
+    // CONFETTI EFFECT
+    function createConfetti() {
+      const container = document.getElementById("confetti");
+      const emojis = ["🎉", "✨", "💖", "🎀", "🌸", "⭐", "💝"];
+      for (let i = 0; i < 35; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.animationDelay = Math.random() * 0.7 + "s";
+        piece.style.fontSize = 14 + Math.random() * 14 + "px";
+        container.appendChild(piece);
+        setTimeout(() => piece.remove(), 3500);
+      }
+    }
+
+    // DISPLAY GIFT
+    function displayGift(data) {
+      finalName.textContent = data.name;
+      finalMessage.textContent = data.message;
+      finalEmoji.textContent = data.emoji || "🎁";
+      applyTheme(data.theme);
+      giftBox.classList.remove("open");
+      giftMessage.classList.add("hidden");
+      document.getElementById("tapText").style.display = "block";
+    }
+
+    // CREATE GIFT CLICK
+    createBtn.addEventListener("click", () => {
+      const name = recipient.value.trim();
+      const text = message.value.trim();
+
+      if (!name) {
+        alert("Please enter the recipient's name 🎁");
+        recipient.focus();
+        return;
+      }
+      if (!text) {
+        alert("Please write a message 💌");
+        message.focus();
+        return;
+      }
+
+      const giftData = {
+        type: selectedGiftType,
+        emoji: giftEmojis[selectedGiftType],
+        name: name,
+        message: text,
+        theme: selectedTheme,
+        created: Date.now()
+      };
+
+      displayGift(giftData);
+
+      const encoded = encodeGift(giftData);
+      const url = window.location.origin + window.location.pathname + "?gift=" + encoded;
+      window.currentGiftURL = url;
+
+      showScreen(giftScreen);
+    });
+
+    // OPEN GIFT BOX
+    giftBox.addEventListener("click", () => {
+      if (giftBox.classList.contains("open")) return;
+      giftBox.classList.add("open");
+      createConfetti();
+      setTimeout(() => {
+        giftMessage.classList.remove("hidden");
+        document.getElementById("tapText").style.display = "none";
+      }, 700);
+    });
+
+    // TELEGRAM SHARE
+    shareBtn.addEventListener("click", () => {
+      const url = window.currentGiftURL;
+      if (!url) {
+        alert("Gift link তৈরি হয়নি।");
+        return;
+      }
+
+      const shareText = "🎁 You received a Digital Gift! 💝\n\nTap here to open your surprise:";
+      const shareURL = "https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(shareText);
+
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(shareURL);
+      } else {
+        window.open(shareURL, "_blank");
+      }
+    });
+
+    // RESET / NEW GIFT
+    newGiftBtn.addEventListener("click", () => {
+      recipient.value = "";
+      message.value = "";
+      charCount.textContent = "0";
+      giftBox.classList.remove("open");
+      giftMessage.classList.add("hidden");
+      document.getElementById("tapText").style.display = "block";
+      showScreen(homeScreen);
+    });
+
+    // CHECK URL PARAMETER
+    function checkGiftFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get("gift");
+      if (!encoded) return;
+
+      const data = decodeGift(encoded);
+      if (!data) return;
+
+      displayGift(data);
+      window.currentGiftURL = window.location.href;
+      showScreen(giftScreen);
+    }
+
+    checkGiftFromURL();
+  </script>
+</body>
+</html>
